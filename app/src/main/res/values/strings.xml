@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">AutobusesIDRL</string>
+    <string name="fcm_token">FCM Token: %s</string>
+    <string name="title_activity_home">HOME</string>
+    <string name="googleAuthClientID">897900550232-fcr67st6tku7mdm6kb1baojqsmikj5ll.apps.googleusercontent.com</string>
+    <string name="apiKey">AIzaSyCWUPZhUn0tbTsI8aHxJF3f-R7eisMz2Zc</string>
+    <string name="txtIdioma">Seleccionar idioma</string>
+    <string name="txtSalir">Salir</string>
+    <string name="conectate">¡CONÉCTATE!</string>
+    <string name="conectando">Conectando…</string>
+    <string name="login">LOGIN</string>
+    <string name="registrate">REGISTRATE</string>
+    <string name="signin">Conéctate</string>
+    <string name="navRuta">Ruta</string>
+    <string name="navAlertas">Alertas</string>
+    <string name="navHorarios">Horarios</string>
+    <string name="seleccionarRuta">Seleccionar ruta…</string>
+    <string name="title_activity_home_selecciona">activity_home_selecciona</string>
+</resources>

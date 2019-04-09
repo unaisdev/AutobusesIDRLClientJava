@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">IDRL Autobusak</string>
+    <string name="fcm_token">FCM Token: %s</string>
+    <string name="title_activity_home">Hasiera</string>
+    <string name="googleAuthClientID">897900550232-fcr67st6tku7mdm6kb1baojqsmikj5ll.apps.googleusercontent.com</string>
+    <string name="apiKey">AIzaSyCWUPZhUn0tbTsI8aHxJF3f-R7eisMz2Zc</string>
+    <string name="txtIdioma">Idioma selekzionatu</string>
+    <string name="txtSalir">Atera</string>
+    <string name="conectate">KONEKTATU!</string>
+    <string name="conectando">Konektatzen...</string>
+    <string name="login">KONEKTATU</string>
+    <string name="registrate">ERREGISTRATU</string>
+    <string name="signin">Konektatu</string>
+    <string name="navRuta">Bidea</string>
+    <string name="navAlertas">Alertak</string>
+    <string name="navHorarios">Ordutegiak</string>
+    <string name="seleccionarRuta">Bidea erabaki…</string>
+    <string name="title_activity_home_selecciona">activity_home_selecciona</string>
+</resources>

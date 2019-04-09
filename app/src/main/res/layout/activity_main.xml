@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="2sp"
+            app:cardCornerRadius="6dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_margin="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtConect"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/signin"
+                    android:textAlignment="center"
+                    android:textColor="#f57f17"
+                    android:textSize="25dp"
+                    />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10sp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/icEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:drawableLeft="@drawable/icon_email"
+                        android:layout_margin="10sp"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/eTUsername"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"
+                        android:layout_marginEnd="10dp"
+                        android:textSize="16sp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10sp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/icPass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:drawableLeft="@drawable/icon_pass"
+                        android:layout_margin="10sp"
+                        android:textSize="16dp"/>
+
+                    <EditText
+                        android:id="@+id/eTPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLength="20"
+                        android:layout_marginEnd="10dp"
+                        android:inputType="textPassword"
+                        android:textSize="16dp"/>
+
+                </LinearLayout>
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/progressBar"
+                    android:progressDrawable="@drawable/spinner_cargando" />
+
+                <Button
+                    android:id="@+id/bLogin"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="20dp"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="#f57f17"
+                    android:textSize="16dp"
+                    android:textColor="#FFFFFF"
+                    android:text="@string/login"/>
+
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/bLoginGoogle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="20dp"
+        android:textSize="16dp"
+        android:text="@string/signin"/>
+    </LinearLayout>
+
+</LinearLayout>

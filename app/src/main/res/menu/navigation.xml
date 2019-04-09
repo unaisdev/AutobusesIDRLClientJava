@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mapa"
+        android:icon="@drawable/ic_map"
+        android:title="@string/navRuta"/>
+
+    <item
+        android:id="@+id/horarios"
+        android:icon="@drawable/ic_horarios"
+        android:title="@string/navHorarios"/>
+
+    <item
+        android:id="@+id/alertas"
+        android:icon="@drawable/ic_alerts"
+        android:title="@string/navAlertas"/>
+
+</menu>
