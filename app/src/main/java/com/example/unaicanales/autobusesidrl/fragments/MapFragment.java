@@ -180,6 +180,42 @@ public class MapFragment extends Fragment
         ConnServer.markerAutobuses = markerAutobuses;
     }
 
+    private void pintarLinea(Ruta linea){
+        double lat = 0;
+        double lon = 0;
+        PolylineOptions rectOptions = new PolylineOptions().color(linea.getColor());
+        Polyline polyline;
+
+        for (GeoPoint punto: linea.getRutaCompleta()) {
+            lat = punto.getLatitude();
+            lon = punto.getLongitude();
+
+            linea.getRutaCompleta().add(punto);
+            rectOptions.add(new LatLng(lat, lon));
+        }
+
+        linea.setRoute(mMap.addPolyline(rectOptions));
+
+    }
+
+    private void pintarParadas(Ruta linea){
+        for(Parada parada: linea.getParadas()){
+
+            String lineasParada = "";
+            for (String line: parada.getLineas()) {
+                lineasParada = lineasParada + line + ", ";
+            }
+            lineasParada = lineasParada.substring(0, lineasParada.length()-2);
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(parada.getLatLong().getLatitude(), parada.getLatLong().getLongitude()))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.parada_marker))
+                    .snippet(lineasParada)
+                    .title(parada.getNombre())
+                    .flat(true)
+            );
+        }
+    }
+
 
     public static void moverAutobus(String msg){
         //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento

@@ -15,6 +15,9 @@ import com.google.firebase.firestore.GeoPoint;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +28,7 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
 
     private DataInputStream br;
     private DataOutputStream bw;
+    private ObjectInputStream brObject;
     private final int PORT_NUMBER = 7979;
     private final String NAME = "10.0.2.2";
     public static ArrayList<Autobus> autobuses = new ArrayList<>();
@@ -40,6 +44,7 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
 
             //Abrimos la tuberia de escucha
             br = new DataInputStream(socket.getInputStream());
+            brObject = new ObjectInputStream(socket.getInputStream());
 
             //Abrimos la tuberia del envio, aunque probablemente no se use
             bw = new DataOutputStream(socket.getOutputStream());
@@ -66,6 +71,10 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
         public void run() {
             try {
                 String msg;
+                Object obj;
+                while ((obj =brObject.readObject())!=null) {
+                    System.out.print(obj.toString());
+                }
                 while ((msg =br.readUTF())!=null) {
                     switch(findForWhat(msg)){
                         case "posBus":
@@ -97,6 +106,8 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
                     }
                 }
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
