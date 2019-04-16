@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.widget.BottomNavigationView;
@@ -33,6 +36,7 @@ import android.widget.Toast;
 import com.example.unaicanales.autobusesidrl.fragments.AlertsFragment;
 import com.example.unaicanales.autobusesidrl.fragments.HorariosFragment;
 import com.example.unaicanales.autobusesidrl.fragments.MapFragment;
+import com.example.unaicanales.autobusesidrl.models.Autobus;
 import com.example.unaicanales.autobusesidrl.models.Parada;
 import com.example.unaicanales.autobusesidrl.models.Ruta;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -51,22 +55,32 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -84,8 +98,97 @@ public class HomeActivity extends AppCompatActivity {
     private HorariosFragment horariosFragment = new HorariosFragment();
     private MapFragment mapFragment = new MapFragment();
 
+    private DataInputStream br;
+    private DataOutputStream bw;
+    private ObjectInputStream brObject;
+    private final int PORT_NUMBER = 7979;
+    private final String NAME = "10.0.2.2";
+    public static ArrayList<Autobus> autobuses = new ArrayList<>();
+    public static Map<String, Marker> markerAutobuses;
+
     private GoogleSignInAccount cliente;
     private Spinner spinnerLinea;
+
+    final public Runnable runnableListener = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                String msg;
+                while ((msg =br.readUTF())!=null) {
+                    switch(findForWhat(msg)){
+                        case "linea":
+                            JSONObject jsonObject = findLinea(msg);
+                            Log.e("---> ", jsonObject.toString());
+
+
+                            break;
+                        case "posBus":
+                            //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
+                            Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
+                            autobuses.add(autobus);
+
+                            Log.e("---> ", findBus(msg));
+                            Log.e("---> ", findCoordinates(msg).toString());
+                            break;
+
+                        case "line":
+                            //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
+                            Ruta ruta = new Ruta();
+
+                            Log.e("---> ", findBus(msg));
+                            Log.e("---> ", findCoordinates(msg).toString());
+                            break;
+                        case "movBus":
+                            //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimientoç
+                            Log.e("---> ", msg);
+
+                            class MoverAutobus implements Runnable{
+                                private String msg;
+
+                                public MoverAutobus(String msg){
+                                    this.msg = msg;
+                                }
+
+                                @Override
+                                public void run() {
+                                    //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
+                                    Iterator it = markerAutobuses.entrySet().iterator();
+
+                                    while (it.hasNext()) {
+
+                                        Map.Entry pair = (Map.Entry)it.next();
+                                        System.out.println(pair.getKey() + " = " + pair.getValue());
+                                        for (Autobus bus: autobuses) {
+                                            if(pair.getKey().equals(bus.getId())){
+                                                Marker aMarker = (Marker) pair.getValue();
+
+                                                aMarker.setPosition(new LatLng(ConnServer.findCoordinates(msg).getLatitude(), ConnServer.findCoordinates(msg).getLongitude()));
+                                            }
+                                        }
+
+                                        it.remove(); // avoids a ConcurrentModificationException
+                                    }
+                                }
+                            }
+
+                            MoverAutobus moverAutobus = new MoverAutobus(msg);
+
+                            runOnUiThread(moverAutobus);
+
+                            break;
+
+                        case "alert":
+
+                            break;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
 
     private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -128,10 +231,12 @@ public class HomeActivity extends AppCompatActivity {
     }
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
 
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.botNav);
 
@@ -142,10 +247,66 @@ public class HomeActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, mapFragment, "1").commit();
         fragActivo = mapFragment;
 
-        new ConnServer().execute();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Socket socket = new Socket(NAME, PORT_NUMBER);
+
+                    System.out.println("SOCKET CONECTADO!");
+
+                    //Abrimos la tuberia de escucha
+                    br = new DataInputStream(socket.getInputStream());
+                    //brObject = new ObjectInputStream(socket.getInputStream());
+
+                    //Abrimos la tuberia del envio, aunque probablemente no se use
+                    bw = new DataOutputStream(socket.getOutputStream());
+
+                    //Necesitamos hacer uso de hTread para crear un proceso, y asignarle los runnables que debe ejecutar
+                    HandlerThread hTListen = new HandlerThread("listening");
+                    hTListen.start();
+
+                    //Metemos en la cola el Runnable
+                    Handler hListen = new Handler(hTListen.getLooper());
+                    hListen.post(runnableListener);
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
 
     }
 
+
+    //Metodo que se encarga de ver que tipo de mensaje llega desde el servidor
+    public static String findForWhat(String msg){
+        return msg.substring(0, msg.indexOf(':'));
+    }
+
+    public static JSONObject findLinea(String msg) throws JSONException {
+        return new JSONObject(msg.substring(msg.indexOf(':' + 1 , msg.length())));
+    }
+
+    //Metodo que recoge el mensaje en sí
+    public static String findData(String msg){
+        return msg.substring(msg.indexOf(':') + 1, msg.length());
+    }
+
+    //metodo que busca el bus al que pertenecen las coordenadas que llegan
+    public static String findBus(String msg){
+        return findData(msg).substring(0, findData(msg).indexOf('|'));
+    }
+
+    //sacamos las coordenadas del mensaje
+    public static GeoPoint findCoordinates(String msg){
+        String[] coordinates = findData(msg).substring(findData(msg).indexOf('|') + 1, findData(msg).length()).split(",");
+        double latitude = Double.parseDouble(coordinates[0]);
+        double longitude = Double.parseDouble(coordinates[1]);
+        return new GeoPoint(latitude, longitude);
+    }
 
 
     //Metodo para mostrar y ocultar el menu de la Actionbar

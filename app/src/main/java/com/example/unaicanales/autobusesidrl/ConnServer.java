@@ -12,6 +12,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.firestore.GeoPoint;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,7 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class ConnServer extends AsyncTask<Void, Void, Boolean>{
+public class ConnServer extends AsyncTask<Runnable, Void, Boolean>{
 
     private DataInputStream br;
     private DataOutputStream bw;
@@ -36,7 +39,7 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
 
 
     @Override
-    protected Boolean doInBackground(Void... voids) {
+    protected Boolean doInBackground(Runnable... runnableListener) {
         try {
             Socket socket = new Socket(NAME, PORT_NUMBER);
 
@@ -44,7 +47,7 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
 
             //Abrimos la tuberia de escucha
             br = new DataInputStream(socket.getInputStream());
-            brObject = new ObjectInputStream(socket.getInputStream());
+            //brObject = new ObjectInputStream(socket.getInputStream());
 
             //Abrimos la tuberia del envio, aunque probablemente no se use
             bw = new DataOutputStream(socket.getOutputStream());
@@ -55,7 +58,7 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
 
             //Metemos en la cola el Runnable
             Handler hListen = new Handler(hTListen.getLooper());
-            hListen.post(runnableListener);
+            hListen.post(runnableListener[0]);
 
 
         } catch (IOException e) {
@@ -65,57 +68,14 @@ public class ConnServer extends AsyncTask<Void, Void, Boolean>{
         return null;
     }
 
-    //Runnable que estará a la escucha siempre del servidor
-    final private Runnable runnableListener = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                String msg;
-                Object obj;
-                while ((obj =brObject.readObject())!=null) {
-                    System.out.print(obj.toString());
-                }
-                while ((msg =br.readUTF())!=null) {
-                    switch(findForWhat(msg)){
-                        case "posBus":
-                            //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
-                            Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
-                            autobuses.add(autobus);
-
-                            Log.e("---> ", findBus(msg));
-                            Log.e("---> ", findCoordinates(msg).toString());
-                            break;
-
-                        case "line":
-                            //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
-                            Ruta ruta = new Ruta();
-
-                            Log.e("---> ", findBus(msg));
-                            Log.e("---> ", findCoordinates(msg).toString());
-                            break;
-                        case "movBus":
-                            //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
-                            MapFragment.moverAutobus(msg);
-
-
-                            break;
-
-                        case "alert":
-
-                            break;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
     //Metodo que se encarga de ver que tipo de mensaje llega desde el servidor
     public static String findForWhat(String msg){
         return msg.substring(0, msg.indexOf(':'));
+    }
+
+    public static JSONObject findLinea(String msg) throws JSONException {
+        return new JSONObject(msg.substring(msg.indexOf(':' + 1 , msg.length())));
     }
 
     //Metodo que recoge el mensaje en sí

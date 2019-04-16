@@ -71,15 +71,18 @@ public class MapFragment extends Fragment
 
     public ArrayList<Ruta> rutas;
     public ArrayList<Parada> paradas;
-    public static ArrayList<Autobus> autobuses = ConnServer.autobuses;
+    public static ArrayList<Autobus> autobuses = HomeActivity.autobuses;
     public ArrayList<GeoPoint> arrayListPuntosRuta;
 
     public static Map<String, Marker> markerAutobuses;
+    private static Marker aMarker;
     public Map<String, Parada> mapParadas;
 
     public Map<String, Map<String, Parada>> mapRuta;
 
     private GoogleMap mMap;
+
+    public static String msg;
 
     private AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
         @Override
@@ -173,11 +176,11 @@ public class MapFragment extends Fragment
 
             autobus.actualizarPos();
 
-            final Marker aMarker = mMap.addMarker(autobus.getMarkerOptions());
+            aMarker = mMap.addMarker(autobus.getMarkerOptions());
             markerAutobuses.put(autobus.getId(), aMarker);
         }
 
-        ConnServer.markerAutobuses = markerAutobuses;
+        HomeActivity.markerAutobuses = markerAutobuses;
     }
 
     private void pintarLinea(Ruta linea){
@@ -217,24 +220,10 @@ public class MapFragment extends Fragment
     }
 
 
+
+
     public static void moverAutobus(String msg){
-        //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
-        Iterator it = markerAutobuses.entrySet().iterator();
 
-        while (it.hasNext()) {
-
-            Map.Entry pair = (Map.Entry)it.next();
-            System.out.println(pair.getKey() + " = " + pair.getValue());
-            for (Autobus bus: MapFragment.autobuses) {
-                if(pair.getKey().equals(bus.getId())){
-                    Marker marker = (Marker) pair.getValue();
-
-                    marker.setPosition(new LatLng(ConnServer.findCoordinates(msg).getLatitude(), ConnServer.findCoordinates(msg).getLongitude()));
-                }
-            }
-
-            it.remove(); // avoids a ConcurrentModificationException
-        }
     }
 /*
     public void cargarParadasAutobuses(){
