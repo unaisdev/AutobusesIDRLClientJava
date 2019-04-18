@@ -70,11 +70,11 @@ public class MapFragment extends Fragment
     private Spinner spinnerLinea;
 
     public ArrayList<Ruta> rutas;
-    public ArrayList<Parada> paradas;
+    public static ArrayList<Parada> paradas = HomeActivity.paradas;
     public static ArrayList<Autobus> autobuses = HomeActivity.autobuses;
     public ArrayList<GeoPoint> arrayListPuntosRuta;
 
-    public static Map<String, Marker> markerAutobuses;
+    public static ArrayList<Marker> markerAutobuses;
     private static Marker aMarker;
     public Map<String, Parada> mapParadas;
 
@@ -134,7 +134,8 @@ public class MapFragment extends Fragment
         mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
-        cargarAutobuses();
+        pintarAutobuses();
+        pintaParadas();
 
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(43.339814, -1.791228), 11,0,0)));
     }
@@ -169,18 +170,36 @@ public class MapFragment extends Fragment
         spinnerLinea.setOnItemSelectedListener(onItemSelectedListener);
     }
 
-    public void cargarAutobuses(){
-        markerAutobuses = new HashMap<>();
+    public void pintarAutobuses(){
+        markerAutobuses = new ArrayList<>();
 
         for (Autobus autobus: autobuses) {
 
             autobus.actualizarPos();
 
             aMarker = mMap.addMarker(autobus.getMarkerOptions());
-            markerAutobuses.put(autobus.getId(), aMarker);
+            markerAutobuses.add(aMarker);
         }
 
         HomeActivity.markerAutobuses = markerAutobuses;
+    }
+
+    public void pintaParadas(){
+        for (Parada parada: paradas) {
+            String lineasParada = "";
+            for (String line: parada.getLineas()) {
+                lineasParada = lineasParada + line + ", ";
+            }
+            lineasParada = lineasParada.substring(0, lineasParada.length()-2);
+
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(parada.getLatLong().getLatitude(), parada.getLatLong().getLongitude()))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.parada_marker))
+                    .snippet(lineasParada)
+                    .title(parada.getNombre())
+                    .flat(true));
+        }
+
     }
 
     private void pintarLinea(Ruta linea){
@@ -201,30 +220,6 @@ public class MapFragment extends Fragment
 
     }
 
-    private void pintarParadas(Ruta linea){
-        for(Parada parada: linea.getParadas()){
-
-            String lineasParada = "";
-            for (String line: parada.getLineas()) {
-                lineasParada = lineasParada + line + ", ";
-            }
-            lineasParada = lineasParada.substring(0, lineasParada.length()-2);
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(parada.getLatLong().getLatitude(), parada.getLatLong().getLongitude()))
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.parada_marker))
-                    .snippet(lineasParada)
-                    .title(parada.getNombre())
-                    .flat(true)
-            );
-        }
-    }
-
-
-
-
-    public static void moverAutobus(String msg){
-
-    }
 /*
     public void cargarParadasAutobuses(){
 

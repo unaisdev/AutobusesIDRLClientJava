@@ -5,6 +5,7 @@ import android.location.Location;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.type.LatLng;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parada {
@@ -14,13 +15,13 @@ public class Parada {
     private double latitud;
     private double longitud;
     private GeoPoint latLong;
-    private List<String> lineas;
+    private ArrayList<String> lineas;
 
     public Parada(){
 
     }
 
-    public Parada(String id, String nombre, double latitud, double longitud, List<String> lineas) {
+    public Parada(String id, String nombre, double latitud, double longitud, ArrayList<String> lineas) {
         this.id = id;
         this.nombre = nombre;
         this.latLong = new GeoPoint(latitud, longitud);
@@ -67,11 +68,23 @@ public class Parada {
         this.latLong = latLong;
     }
 
-    public List<String> getLineas() {
+    public ArrayList<String> getLineas() {
         return lineas;
     }
 
-    public void setLineas(List<String> lineas) {
+    public void setLineas(ArrayList<String> lineas) {
         this.lineas = lineas;
+    }
+
+
+    public String imprimirParada(){
+        String paradaMsg = "posParada: " + nombre + "| " + latLong.getLatitude() + ", " + latLong.getLongitude() + "|";
+
+        for(String lineaAsociada: lineas)
+            paradaMsg += lineaAsociada + ", ";
+
+        paradaMsg.substring(0, paradaMsg.length()-2);
+
+        return paradaMsg;
     }
 }

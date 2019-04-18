@@ -73,6 +73,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -104,7 +105,8 @@ public class HomeActivity extends AppCompatActivity {
     private final int PORT_NUMBER = 7979;
     private final String NAME = "10.0.2.2";
     public static ArrayList<Autobus> autobuses = new ArrayList<>();
-    public static Map<String, Marker> markerAutobuses;
+    public static ArrayList<Marker> markerAutobuses;
+    public static ArrayList<Parada> paradas = new ArrayList<>();
 
     private GoogleSignInAccount cliente;
     private Spinner spinnerLinea;
@@ -152,22 +154,14 @@ public class HomeActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
-                                    Iterator it = markerAutobuses.entrySet().iterator();
 
-                                    while (it.hasNext()) {
-
-                                        Map.Entry pair = (Map.Entry)it.next();
-                                        System.out.println(pair.getKey() + " = " + pair.getValue());
-                                        for (Autobus bus: autobuses) {
-                                            if(pair.getKey().equals(bus.getId())){
-                                                Marker aMarker = (Marker) pair.getValue();
-
-                                                aMarker.setPosition(new LatLng(ConnServer.findCoordinates(msg).getLatitude(), ConnServer.findCoordinates(msg).getLongitude()));
-                                            }
+                                    for(int i = 0; i < markerAutobuses.size(); i++){
+                                        if(markerAutobuses.get(i).getTitle().equals(findBus(msg))){
+                                            markerAutobuses.get(i).setPosition(new LatLng(findCoordinates(msg).getLatitude(), findCoordinates(msg).getLongitude()));
                                         }
-
-                                        it.remove(); // avoids a ConcurrentModificationException
                                     }
+
+
                                 }
                             }
 
@@ -177,7 +171,13 @@ public class HomeActivity extends AppCompatActivity {
 
                             break;
 
-                        case "alert":
+                        case "posParada":
+                            GeoPoint puntoParada = findCoordinatesParada(msg);
+                            String nombre = findBus(msg);
+                            ArrayList<String> lineasAsociadas = findLinesAsociated(msg);
+
+                            Parada nuevaParada = new Parada(nombre, nombre, puntoParada.getLatitude(), puntoParada.getLongitude(), lineasAsociadas);
+                            paradas.add(nuevaParada);
 
                             break;
                     }
@@ -226,8 +226,6 @@ public class HomeActivity extends AppCompatActivity {
         Configuration config = new Configuration();
         config.locale = localization;
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
-
-
     }
 
 
@@ -306,6 +304,23 @@ public class HomeActivity extends AppCompatActivity {
         double latitude = Double.parseDouble(coordinates[0]);
         double longitude = Double.parseDouble(coordinates[1]);
         return new GeoPoint(latitude, longitude);
+    }
+
+
+    //sacamos las coordenadas del mensaje
+    public static GeoPoint findCoordinatesParada(String msg){
+        String[] coordinates = findData(msg).substring(findData(msg).indexOf('|') + 1, findData(msg).lastIndexOf('|')).split(",");
+        double latitude = Double.parseDouble(coordinates[0]);
+        double longitude = Double.parseDouble(coordinates[1]);
+        return new GeoPoint(latitude, longitude);
+    }
+
+    public static ArrayList<String> findLinesAsociated(String msg){
+        ArrayList<String> lineasAsociadas = new ArrayList<>();
+        String[] lineaSociadas = findData(msg).substring(findData(msg).lastIndexOf('|') + 1, findData(msg).length()).split(",");
+        for (String linea: lineaSociadas)
+            lineasAsociadas.add(linea);
+        return lineasAsociadas;
     }
 
 
