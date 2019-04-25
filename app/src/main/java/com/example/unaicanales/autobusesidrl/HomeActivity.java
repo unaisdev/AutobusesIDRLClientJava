@@ -115,7 +115,7 @@ import java.util.Random;
     private DataOutputStream bw;
     private ObjectInputStream brObject;
     private final int PORT_NUMBER = 7979;
-    private final String NAME = "10.0.2.2";
+    private final String NAME = "192.168.1.3";
     public static ArrayList<Autobus> autobuses = new ArrayList<>();
     public static ArrayList<Marker> markerAutobuses;
     public static ArrayList<Parada> paradas = new ArrayList<>();
@@ -208,10 +208,26 @@ import java.util.Random;
 
                         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                                .setSmallIcon(R.drawable.ic_bus)
                                 .setContentTitle(alerta[0])
                                 .setContentText(alerta[1]);
 
+                        switch (findTypeAlert(msg)){
+                            case "Accidente":
+                                    mBuilder.setSmallIcon(R.drawable.ic_accidente);
+                                break;
+
+                            case "Desviacion":
+                                mBuilder.setSmallIcon(R.drawable.ic_desviacion);
+                                break;
+
+                            case "Averia":
+                                mBuilder.setSmallIcon(R.drawable.ic_averia);
+                                break;
+
+                            case "Retraso":
+                                mBuilder.setSmallIcon(R.drawable.ic_retraso);
+                                break;
+                        }
 
                         NotificationManager notificationManager =
                                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -248,6 +264,9 @@ import java.util.Random;
         }
     }
 
+    private String findTypeAlert(String msg){
+        return findData(msg).substring(0, findData(msg).indexOf(','));
+    }
 
     private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
