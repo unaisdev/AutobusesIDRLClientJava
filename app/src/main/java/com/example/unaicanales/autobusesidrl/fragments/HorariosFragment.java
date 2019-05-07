@@ -163,7 +163,7 @@ public class HorariosFragment extends Fragment {
                                             nuevaRuta.setNombre(pair.getValue().toString());
                                             break;
                                         case "color":
-                                            nuevaRuta.setColor(Color.parseColor(pair.getValue().toString()));
+                                            nuevaRuta.setColor((pair.getValue().toString()));
                                             break;
                                     }
                                     it.remove(); // avoids a ConcurrentModificationException

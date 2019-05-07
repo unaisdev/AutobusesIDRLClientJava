@@ -69,9 +69,9 @@ public class MapFragment extends Fragment
     private View bottomSheet;
     private Spinner spinnerLinea;
 
-    public ArrayList<Ruta> rutas;
-    public static ArrayList<Parada> paradas = HomeActivity.paradas;
-    public static ArrayList<Autobus> autobuses = HomeActivity.autobuses;
+    public static ArrayList<Parada> paradas = ConnServer.paradas;
+    public static ArrayList<Ruta> rutas = ConnServer.rutas;
+    public static ArrayList<Autobus> autobuses = ConnServer.autobuses;
     public ArrayList<GeoPoint> arrayListPuntosRuta;
 
     public static ArrayList<Marker> markerAutobuses;
@@ -134,10 +134,19 @@ public class MapFragment extends Fragment
         mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
-        pintarAutobuses();
-        pintaParadas();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
 
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(43.339814, -1.791228), 11,0,0)));
+        pintarAutobuses();
+        pintaParadas();
+        for(Ruta ruta: rutas){
+            pintarLineas(ruta);
+        }
     }
 
 
@@ -148,7 +157,7 @@ public class MapFragment extends Fragment
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            Ruta rut = new Ruta("A-00", getString(R.string.seleccionarRuta), R.color.gray);
+                            Ruta rut = new Ruta("A-00", getString(R.string.seleccionarRuta), "#00ff00");
                             rutas.add(rut);
                             for (DocumentSnapshot document : task.getResult()) {
                                 Ruta ruta = document.toObject(Ruta.class);
@@ -181,7 +190,7 @@ public class MapFragment extends Fragment
             markerAutobuses.add(aMarker);
         }
 
-        HomeActivity.markerAutobuses = markerAutobuses;
+        ConnServer.markerAutobuses = markerAutobuses;
     }
 
     public void pintaParadas(){
@@ -202,22 +211,12 @@ public class MapFragment extends Fragment
 
     }
 
-    private void pintarLinea(Ruta linea){
-        double lat = 0;
-        double lon = 0;
-        PolylineOptions rectOptions = new PolylineOptions().color(linea.getColor());
+    private void pintarLineas(Ruta ruta){
         Polyline polyline;
 
-        for (GeoPoint punto: linea.getRutaCompleta()) {
-            lat = punto.getLatitude();
-            lon = punto.getLongitude();
+        ruta.getRectOptions().addAll(ruta.getRutaCompleta());
 
-            linea.getRutaCompleta().add(punto);
-            rectOptions.add(new LatLng(lat, lon));
-        }
-
-        linea.setRoute(mMap.addPolyline(rectOptions));
-
+        polyline = mMap.addPolyline(ruta.getRectOptions());
     }
 
 /*

@@ -2,6 +2,7 @@ package com.example.unaicanales.autobusesidrl;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -60,7 +61,7 @@ public class SpinnerAdapter extends ArrayAdapter<String> {
         Log.d("Soucer image", String.valueOf(rutas.get(position)));
         Ruta ruta = rutas.get(position);
         spinnerItems.idText.setText(ruta.getId());
-        spinnerItems.idText.setBackgroundColor(ruta.getColor());
+        spinnerItems.idText.setBackgroundColor(Color.parseColor(ruta.getColor()));
         spinnerItems.lineaText.setText(ruta.getNombre());
 
         return convertView;

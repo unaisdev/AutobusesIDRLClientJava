@@ -1,9 +1,12 @@
 package com.example.unaicanales.autobusesidrl.models;
 
+import android.graphics.Color;
 import android.location.Geocoder;
 
 import com.example.unaicanales.autobusesidrl.R;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
@@ -13,23 +16,35 @@ import java.util.Map;
 public class Ruta {
     private String id;
     private String nombre;
-    private int color;
+    private String color;
     private Polyline route;
     private ArrayList<Parada> paradas;
-    private ArrayList<GeoPoint> rutaCompleta;
+    private List<LatLng> rutaCompleta;
+    private PolylineOptions rectOptions;
 
     public Ruta(){
         paradas = new ArrayList<>();
         rutaCompleta = new ArrayList<>();
     }
 
-    public Ruta(String id, String nombre, int color) {
+    public Ruta(String id, String nombre, String color) {
         this.id = id;
         this.nombre = nombre;
         this.color = color;
+        this.rectOptions = new PolylineOptions();
+        rectOptions.color(Color.parseColor(color));
+        rectOptions.width(4);
     }
 
-    public int getColor() {
+    public PolylineOptions getRectOptions() {
+        return rectOptions;
+    }
+
+    public void setRectOptions(PolylineOptions rectOptions) {
+        this.rectOptions = rectOptions;
+    }
+
+    public String getColor() {
         return color;
     }
 
@@ -41,7 +56,7 @@ public class Ruta {
         this.route = route;
     }
 
-    public void setColor(int color) {
+    public void setColor(String color) {
         this.color = color;
     }
 
@@ -69,11 +84,11 @@ public class Ruta {
         this.paradas = paradas;
     }
 
-    public ArrayList<GeoPoint> getRutaCompleta() {
+    public List<LatLng> getRutaCompleta() {
         return rutaCompleta;
     }
 
-    public void setRutaCompleta(ArrayList<GeoPoint> rutaCompleta) {
+    public void setRutaCompleta(List<LatLng> rutaCompleta) {
         this.rutaCompleta = rutaCompleta;
     }
 
