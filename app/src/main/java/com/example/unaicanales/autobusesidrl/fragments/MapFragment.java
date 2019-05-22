@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.unaicanales.autobusesidrl.CommServer;
 import com.example.unaicanales.autobusesidrl.ConnServer;
 import com.example.unaicanales.autobusesidrl.HomeActivity;
 import com.example.unaicanales.autobusesidrl.R;
@@ -69,9 +70,9 @@ public class MapFragment extends Fragment
     private View bottomSheet;
     private Spinner spinnerLinea;
 
-    public static ArrayList<Parada> paradas = ConnServer.paradas;
-    public static ArrayList<Ruta> rutas = ConnServer.rutas;
-    public static ArrayList<Autobus> autobuses = ConnServer.autobuses;
+    public static ArrayList<Parada> paradas = CommServer.paradas;
+    public static ArrayList<Ruta> rutas = CommServer.rutas;
+    public static ArrayList<Autobus> autobuses = CommServer.autobuses;
     public ArrayList<GeoPoint> arrayListPuntosRuta;
 
     public static ArrayList<Marker> markerAutobuses;
@@ -190,7 +191,7 @@ public class MapFragment extends Fragment
             markerAutobuses.add(aMarker);
         }
 
-        ConnServer.markerAutobuses = markerAutobuses;
+        CommServer.markerAutobuses = markerAutobuses;
     }
 
     public void pintaParadas(){
