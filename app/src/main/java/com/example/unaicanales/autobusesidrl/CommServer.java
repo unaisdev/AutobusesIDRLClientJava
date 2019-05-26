@@ -42,6 +42,7 @@ public class CommServer {
     public static ArrayList<Autobus> autobuses = new ArrayList<>();
     public static ArrayList<Ruta> rutas = new ArrayList<>();
     public static ArrayList<Marker> markerAutobuses;
+    public static String msg;
     private static final String CHANNEL_ID ="Alertas";
     private NotificationManager notificationManager;
     private Activity activity;
@@ -64,126 +65,29 @@ public class CommServer {
         @Override
         public void run() {
             try {
-                String msg;
-                while ((msg =dataInputStream.readUTF())!=null) {
-                    System.out.println(msg);
+                while ((msg = dataInputStream.readUTF())!=null) {
                     switch(findForWhat(msg)){
                         case "linea":
-                            String[] lineaArray = findDataLine(msg);
-                            List<LatLng> puntosRuta = new ArrayList<>();
-                            String nombre = lineaArray[0];
-                            String color = lineaArray[1];
-                            JSONArray jsonArray = findRouteArray(msg);
-
-                            for (int i = 0; i < jsonArray.length(); i++)
-                            {
-                                double latitude = jsonArray.getJSONObject(i).getDouble("_lat");
-                                double longitude = jsonArray.getJSONObject(i).getDouble("_lon");
-
-                                LatLng nuevoPunto = new LatLng(latitude, longitude);
-                                puntosRuta.add(nuevoPunto);
-                            }
-
-                            Ruta ruta = new Ruta(nombre, nombre, color);
-                            ruta.setRutaCompleta(puntosRuta);
-
-                            rutas.add(ruta);
-                            Log.e("---> ", msg);
-
+                            lineUps();
 
                             break;
                         case "posBus":
-                            //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
-                            Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
-                            autobuses.add(autobus);
+                            busUps();
 
-                            Log.e("---> ", findBus(msg));
-                            Log.e("---> ", findCoordinates(msg).toString());
                             break;
 
                         case "movBus":
-                            //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimientoç
-                            Log.e("---> ", msg);
-
-                            class MoverAutobus implements Runnable{
-                                private String msg;
-
-                                public MoverAutobus(String msg){
-                                    this.msg = msg;
-                                }
-
-                                @Override
-                                public void run() {
-                                    //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
-
-                                    for(int i = 0; i < markerAutobuses.size(); i++){
-                                        if(markerAutobuses.get(i).getTitle().equals(findBus(msg))){
-                                            markerAutobuses.get(i).setPosition(new LatLng(findCoordinates(msg).getLatitude(), findCoordinates(msg).getLongitude()));
-                                        }
-                                    }
-
-
-                                }
-                            }
-
-                            MoverAutobus moverAutobus = new MoverAutobus(msg);
-
-                            activity.runOnUiThread(moverAutobus);
+                            busMovement();
 
                             break;
 
                         case "posParada":
-                            GeoPoint puntoParada = findCoordinatesParada(msg);
-                            String nombreBus = findBus(msg);
-                            ArrayList<String> lineasAsociadas = findLinesAsociated(msg);
-
-                            Parada nuevaParada = new Parada(nombreBus, nombreBus, puntoParada.getLatitude(), puntoParada.getLongitude(), lineasAsociadas);
-                            paradas.add(nuevaParada);
+                            stationPos();
 
                             break;
 
                         case "alerta":
-                            //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimientoç
-                            Log.e("---> ", msg);
-
-                            String[] alerta = findData(msg).split(",");
-
-                            notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-                            //Setting up Notification channels for android O and above
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                setupChannels();
-                            }
-                            int notificationId = new Random().nextInt(60000);
-
-                            Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(activity.getApplicationContext(), CHANNEL_ID)
-                                    .setContentTitle(alerta[0])
-                                    .setContentText(alerta[1]);
-
-                            switch (findTypeAlert(msg)){
-                                case "Accidente":
-                                    mBuilder.setSmallIcon(R.drawable.ic_accidente);
-                                    break;
-
-                                case "Desviacion":
-                                    mBuilder.setSmallIcon(R.drawable.ic_desviacion);
-                                    break;
-
-                                case "Averia":
-                                    mBuilder.setSmallIcon(R.drawable.ic_averia);
-                                    break;
-
-                                case "Retraso":
-                                    mBuilder.setSmallIcon(R.drawable.ic_retraso);
-                                    break;
-                            }
-
-                            NotificationManager notificationManager =
-                                    (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-
-                            notificationManager.notify(notificationId /* ID of notification */, mBuilder.build());
-                            // Also if you intend on generating your own notifications as a result of a received FCM
-                            // message, here is where that should be initiated. See sendNotification method below.
+                            alertComes();
 
                             break;
 
@@ -196,6 +100,122 @@ public class CommServer {
             }
         }
     };
+
+    private void alertComes(){
+        String[] alerta = findData(msg).split(",");
+
+        notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+        //Setting up Notification channels for android O and above
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            setupChannels();
+        }
+        int notificationId = new Random().nextInt(60000);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(activity.getApplicationContext(), CHANNEL_ID)
+                .setContentTitle(alerta[0])
+                .setContentText(alerta[1]);
+
+        switch (findTypeAlert(msg)){
+            case "Accidente":
+                mBuilder.setSmallIcon(R.drawable.ic_accidente);
+                break;
+
+            case "Desviacion":
+                mBuilder.setSmallIcon(R.drawable.ic_desviacion);
+                break;
+
+            case "Averia":
+                mBuilder.setSmallIcon(R.drawable.ic_averia);
+                break;
+
+            case "Retraso":
+                mBuilder.setSmallIcon(R.drawable.ic_retraso);
+                break;
+        }
+
+        NotificationManager notificationManager =
+                (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(notificationId /* ID of notification */, mBuilder.build());
+        // Also if you intend on generating your own notifications as a result of a received FCM
+        // message, here is where that should be initiated. See sendNotification method below.
+
+    }
+
+    private void stationPos(){
+        GeoPoint puntoParada = findCoordinatesParada(msg);
+        String nombreBus = findBus(msg);
+        ArrayList<String> lineasAsociadas = findLinesAsociated(msg);
+
+        Parada nuevaParada = new Parada(nombreBus, nombreBus, puntoParada.getLatitude(), puntoParada.getLongitude(), lineasAsociadas);
+        paradas.add(nuevaParada);
+
+    }
+
+    private void busMovement(){
+        //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimientoç
+        Log.e("---> ", msg);
+
+        class MoverAutobus implements Runnable{
+            private String msg;
+
+            public MoverAutobus(String msg){
+                this.msg = msg;
+            }
+
+            @Override
+            public void run() {
+                //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
+
+                for(int i = 0; i < markerAutobuses.size(); i++){
+                    if(markerAutobuses.get(i).getTitle().equals(findBus(msg))){
+                        markerAutobuses.get(i).setPosition(new LatLng(findCoordinates(msg).getLatitude(), findCoordinates(msg).getLongitude()));
+                    }
+                }
+
+
+            }
+        }
+
+        MoverAutobus moverAutobus = new MoverAutobus(msg);
+
+        activity.runOnUiThread(moverAutobus);
+
+    }
+
+    private void busUps(){
+        //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
+        Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
+        autobuses.add(autobus);
+
+        Log.e("---> ", findBus(msg));
+        Log.e("---> ", findCoordinates(msg).toString());
+    }
+
+    private void lineUps() throws JSONException {
+        String[] lineaArray = findDataLine(msg);
+        List<LatLng> puntosRuta = new ArrayList<>();
+        String nombre = lineaArray[0];
+        String color = lineaArray[1];
+        JSONArray jsonArray = findRouteArray(msg);
+
+        for (int i = 0; i < jsonArray.length(); i++)
+        {
+            double latitude = jsonArray.getJSONObject(i).getDouble("_lat");
+            double longitude = jsonArray.getJSONObject(i).getDouble("_lon");
+
+            LatLng nuevoPunto = new LatLng(latitude, longitude);
+            puntosRuta.add(nuevoPunto);
+        }
+
+        Ruta ruta = new Ruta(nombre, nombre, color);
+        ruta.setRutaCompleta(puntosRuta);
+
+        rutas.add(ruta);
+        Log.e("---> ", msg);
+
+    }
 
     private String[] findDataLine(String msg){
         return findData(msg).split(",");
@@ -219,17 +239,17 @@ public class CommServer {
     }
 
     //Metodo que recoge el mensaje en sí
-    public static String findData(String msg){
+    private static String findData(String msg){
         return msg.substring(msg.indexOf(':') + 1, msg.length());
     }
 
     //metodo que busca el bus al que pertenecen las coordenadas que llegan
-    public static String findBus(String msg){
+    private static String findBus(String msg){
         return findData(msg).substring(0, findData(msg).indexOf('|'));
     }
 
     //sacamos las coordenadas del mensaje
-    public static GeoPoint findCoordinates(String msg){
+    private static GeoPoint findCoordinates(String msg){
         String[] coordinates = findData(msg).substring(findData(msg).indexOf('|') + 1, findData(msg).length()).split(",");
         double latitude = Double.parseDouble(coordinates[0]);
         double longitude = Double.parseDouble(coordinates[1]);
@@ -238,14 +258,14 @@ public class CommServer {
 
 
     //sacamos las coordenadas del mensaje
-    public static GeoPoint findCoordinatesParada(String msg){
+    private static GeoPoint findCoordinatesParada(String msg){
         String[] coordinates = findData(msg).substring(findData(msg).indexOf('|') + 1, findData(msg).lastIndexOf('|')).split(",");
         double latitude = Double.parseDouble(coordinates[0]);
         double longitude = Double.parseDouble(coordinates[1]);
         return new GeoPoint(latitude, longitude);
     }
 
-    public static ArrayList<String> findLinesAsociated(String msg){
+    private static ArrayList<String> findLinesAsociated(String msg){
         ArrayList<String> lineasAsociadas = new ArrayList<>();
         String[] lineaSociadas = findData(msg).substring(findData(msg).lastIndexOf('|') + 1, findData(msg).length()).split(",");
         for (String linea: lineaSociadas)
@@ -253,19 +273,6 @@ public class CommServer {
         return lineasAsociadas;
     }
 
-    final private Runnable enviarMensaje = new Runnable() {
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    //AQUI HACEMOS PARA ENVIAR MENSAJES O PEDIR LAS PARADAS SE PODRIA
-                    Thread.sleep(100);
-                }catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void setupChannels(){

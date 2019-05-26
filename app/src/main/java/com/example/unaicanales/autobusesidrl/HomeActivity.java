@@ -97,31 +97,11 @@ import java.util.Random;
 
 
     private static final String TAG = "HomeActivity: ";
-    private FusedLocationProviderClient mFusedLocationClient;
-    private SettingsClient mSettingsClient;
-    private LocationCallback mLocationCallback;
-    private Location mCurrentLocation;
-    private LocationRequest mLocationRequest;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private ArrayList<Ruta> rutas = new ArrayList<>();
 
     private Fragment fragActivo;
     private AlertsFragment alertsFragment = new AlertsFragment();
     private HorariosFragment horariosFragment = new HorariosFragment();
     private MapFragment mapFragment = new MapFragment();
-
-    private DataInputStream br;
-    private DataOutputStream bw;
-    private ObjectInputStream brObject;
-    private final int PORT_NUMBER = 7979;
-    private final String NAME = "192.168.1.3";
-    public static ArrayList<Autobus> autobuses = new ArrayList<>();
-    public static ArrayList<Marker> markerAutobuses;
-
-    private GoogleSignInAccount cliente;
-    private Spinner spinnerLinea;
-
-
 
     private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override

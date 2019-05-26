@@ -66,20 +66,14 @@ public class MapFragment extends Fragment
     private static final String TAG = "/: ";
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private BottomSheetBehavior bottomSheetBehavior;
-    private View bottomSheet;
     private Spinner spinnerLinea;
 
     public static ArrayList<Parada> paradas = CommServer.paradas;
     public static ArrayList<Ruta> rutas = CommServer.rutas;
     public static ArrayList<Autobus> autobuses = CommServer.autobuses;
-    public ArrayList<GeoPoint> arrayListPuntosRuta;
 
     public static ArrayList<Marker> markerAutobuses;
     private static Marker aMarker;
-    public Map<String, Parada> mapParadas;
-
-    public Map<String, Map<String, Parada>> mapRuta;
 
     private GoogleMap mMap;
 
