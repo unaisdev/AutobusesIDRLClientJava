@@ -17,6 +17,8 @@ import android.util.Log;
 import com.example.unaicanales.autobusesidrl.models.Autobus;
 import com.example.unaicanales.autobusesidrl.models.Parada;
 import com.example.unaicanales.autobusesidrl.models.Ruta;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.firestore.GeoPoint;
@@ -47,6 +49,9 @@ public class CommServer {
     private NotificationManager notificationManager;
     private Activity activity;
     public static ArrayList<Parada> paradas = new ArrayList<>();
+    private Marker aMarker;
+
+    public static GoogleMap mMap;
 
     public CommServer(DataInputStream dataInputStream, DataOutputStream dataOutputStream, Activity activity){
         this.dataInputStream = dataInputStream;
@@ -66,17 +71,14 @@ public class CommServer {
         public void run() {
             try {
                 while ((msg = dataInputStream.readUTF())!=null) {
+                    System.out.println(msg);
                     switch(findForWhat(msg)){
                         case "linea":
                             lineUps();
 
                             break;
-                        case "posBus":
-                            busUps();
-
-                            break;
-
                         case "movBus":
+                            System.out.println("EE");
                             busMovement();
 
                             break;
@@ -143,6 +145,7 @@ public class CommServer {
 
     }
 
+
     private void stationPos(){
         GeoPoint puntoParada = findCoordinatesParada(msg);
         String nombreBus = findBus(msg);
@@ -156,6 +159,7 @@ public class CommServer {
     private void busMovement(){
         //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimientoç
         Log.e("---> ", msg);
+
 
         class MoverAutobus implements Runnable{
             private String msg;
@@ -178,19 +182,34 @@ public class CommServer {
             }
         }
 
-        MoverAutobus moverAutobus = new MoverAutobus(msg);
+        class AddMarker implements Runnable{
+            private Autobus autobus;
 
-        activity.runOnUiThread(moverAutobus);
+            public AddMarker(Autobus autobus){
+                this.autobus = autobus;
+            }
 
-    }
+            @Override
+            public void run() {
+                //Recibimos el punto donde se encuentra el bus ahora, debido a que se encontraría en movimiento
+                aMarker = mMap.addMarker(autobus.getMarkerOptions());
+                markerAutobuses.add(aMarker);
+            }
+        }
 
-    private void busUps(){
-        //En caso de recibir un mensaje de este tipo, recibimos DONDE se encuentra el bus inicialmente, para pintarlo en el mapa
-        Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
-        autobuses.add(autobus);
+        if(markerAutobuses == null){
+            markerAutobuses = new ArrayList<>();
+            Autobus autobus = new Autobus(findBus(msg), findBus(msg), findCoordinates(msg));
+            autobuses.add(autobus);
+            autobus.actualizarPos();
 
-        Log.e("---> ", findBus(msg));
-        Log.e("---> ", findCoordinates(msg).toString());
+            AddMarker addMarker = new AddMarker(autobus);
+            activity.runOnUiThread(addMarker);
+
+        }else{
+            MoverAutobus moverAutobus = new MoverAutobus(msg);
+            activity.runOnUiThread(moverAutobus);
+        }
     }
 
     private void lineUps() throws JSONException {

@@ -73,9 +73,9 @@ public class MapFragment extends Fragment
     public static ArrayList<Autobus> autobuses = CommServer.autobuses;
 
     public static ArrayList<Marker> markerAutobuses;
-    private static Marker aMarker;
+    public static Marker aMarker;
 
-    private GoogleMap mMap;
+    public static GoogleMap mMap;
 
     public static String msg;
 
@@ -125,6 +125,7 @@ public class MapFragment extends Fragment
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        CommServer.mMap = mMap;
 
         mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
@@ -137,11 +138,12 @@ public class MapFragment extends Fragment
 
 
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(new LatLng(43.339814, -1.791228), 11,0,0)));
-        pintarAutobuses();
+        //pintarAutobuses();
         pintaParadas();
         for(Ruta ruta: rutas){
             pintarLineas(ruta);
         }
+
     }
 
 
@@ -174,19 +176,7 @@ public class MapFragment extends Fragment
         spinnerLinea.setOnItemSelectedListener(onItemSelectedListener);
     }
 
-    public void pintarAutobuses(){
-        markerAutobuses = new ArrayList<>();
 
-        for (Autobus autobus: autobuses) {
-
-            autobus.actualizarPos();
-
-            aMarker = mMap.addMarker(autobus.getMarkerOptions());
-            markerAutobuses.add(aMarker);
-        }
-
-        CommServer.markerAutobuses = markerAutobuses;
-    }
 
     public void pintaParadas(){
         for (Parada parada: paradas) {
